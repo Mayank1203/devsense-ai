@@ -1,3 +1,81 @@
 spring:
   application:
     name: devsense-backend
+
+  # ── Database connection ──────────────────────────────────────────────────────
+  datasource:
+    url:      ${DB_URL:jdbc:postgresql://localhost:5432/devsense}
+    # ${DB_URL:default} means: read from env var DB_URL, use default if not set
+    username: ${DB_USER:devsense}
+    password: ${DB_PASS:devsense}
+    hikari:
+      maximum-pool-size: 10        # max 10 simultaneous DB connections
+      minimum-idle: 2
+      connection-timeout: 30000    # 30 seconds to get connection before error
+
+  # ── JPA / Hibernate ─────────────────────────────────────────────────────────
+  jpa:
+    hibernate:
+      ddl-auto: validate
+      # validate = Hibernate checks schema matches entities, but NEVER changes DB
+      # Flyway owns the schema — Hibernate never creates or alters tables
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: false                # set to true when debugging slow queries
+
+  # ── Flyway — database migrations ────────────────────────────────────────────
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    # Flyway runs SQL files from this folder in version order on every startup
+
+  # ── Kafka ────────────────────────────────────────────────────────────────────
+  kafka:
+    bootstrap-servers: ${KAFKA_SERVERS:localhost:9092}
+    producer:
+      key-serializer:   org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      group-id: devsense-consumers
+      auto-offset-reset: earliest
+      key-deserializer:   org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: com.devsense.*
+
+  # ── Redis ────────────────────────────────────────────────────────────────────
+  data:
+    redis:
+      host:     ${REDIS_HOST:localhost}
+      port:     ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:devsense}
+
+# ── JWT (our custom config, not Spring's) ────────────────────────────────────
+jwt:
+  secret: ${JWT_SECRET:dGhpcyBpcyBhIHRlbXAgc2VjcmV0IGtleSBjaGFuZ2UgaW4gcHJvZA==}
+  # Above is base64 of 'this is a temp secret key change in prod'
+  # In production: generate with: openssl rand -base64 32
+  expiration-ms: 86400000    # 24 hours in milliseconds
+
+# ── GitHub API ───────────────────────────────────────────────────────────────
+github:
+  token: ${GITHUB_TOKEN:}
+  # Get token from: github.com → Settings → Developer settings → Personal access tokens
+
+# ── Python Agent Service ─────────────────────────────────────────────────────
+agent:
+  base-url: ${AGENT_URL:http://localhost:8001}
+  timeout-seconds: 120
+
+# ── Actuator (health + metrics endpoints) ────────────────────────────────────
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+
