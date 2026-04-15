@@ -5,7 +5,7 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- uuid-ossp: generates UUIDs with gen_random_uuid()
 
-CREATE EXTENSION IF NOT EXISTS "pgvector";
+CREATE EXTENSION IF NOT EXISTS "vector";
 -- pgvector: stores AI embedding vectors for RAG (Week 5)
 -- We enable it now so Flyway doesn't fail later when V3 needs it
 
