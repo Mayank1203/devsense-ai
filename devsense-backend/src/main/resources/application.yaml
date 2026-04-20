@@ -44,6 +44,10 @@ spring:
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
         spring.json.trusted.packages: com.devsense.*
+        # Must whitelist packages for security — prevents deserialization attacks
+        spring.json.type.mapping: reviewJob:com.devsense.kafka.ReviewJobMessage
+        # Maps the JSON type to our ReviewJobMessage class
+
 
   # ── Redis ────────────────────────────────────────────────────────────────────
   data:
